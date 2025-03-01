@@ -42,6 +42,7 @@ steps:
     args: [
       'build',
       '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA',
+      '-f', 'Dockerfile.deploy',
       './apps/api'
     ]
     waitFor: ['deploy-playwright']
