@@ -70,10 +70,9 @@ steps:
             --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA \
             --region=${_REGION} \
             --platform=managed \
-            --port=3002 \
             --vpc-connector=crawlweb-connector \
             --command="pnpm,run,start:production" \
-            --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,USE_DB_AUTHENTICATION=${_USE_DB_AUTHENTICATION},LOGGING_LEVEL=${_LOGGING_LEVEL}" \
+            --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,USE_DB_AUTHENTICATION=${_USE_DB_AUTHENTICATION},LOGGING_LEVEL=${_LOGGING_LEVEL},HOST=0.0.0.0,PORT=8080" \
             --service-account="${_SERVICE_ACCOUNT}" \
             --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest" \
             --memory=2Gi \
@@ -95,8 +94,7 @@ steps:
             --platform=managed \
             --vpc-connector=crawlweb-connector \
             --command="pnpm,run,cloudrun-worker:production" \
-            --args="--port=8080" \
-            --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape" \
+            --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,HOST=0.0.0.0,PORT=8080" \
             --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest" \
             --memory=2Gi \
             --cpu=2 \
