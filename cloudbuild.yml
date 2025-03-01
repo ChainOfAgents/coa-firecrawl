@@ -39,6 +39,9 @@ steps:
 
   # Build API Service
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-api-service'
+    env:
+      - 'DOCKER_BUILDKIT=1'
     args: [
       'build',
       '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA',
@@ -49,11 +52,12 @@ steps:
 
   # Push API Service
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-api-service'
     args: [
       'push',
       '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA'
     ]
-    waitFor: ['deploy-playwright']
+    waitFor: ['build-api-service']
 
   # Deploy API Service (conditional)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -76,7 +80,7 @@ steps:
             --cpu=2 \
             --timeout=3600
         fi
-    waitFor: ['deploy-playwright']
+    waitFor: ['push-api-service']
 
   # Deploy Worker Service (conditional)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -98,7 +102,7 @@ steps:
             --timeout=3600 \
             --no-allow-unauthenticated
         fi
-    waitFor: ['deploy-playwright']
+    waitFor: ['push-api-service']
 
 substitutions:
   _REGION: us-west2
