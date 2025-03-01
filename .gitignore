@@ -98,3 +98,4 @@ dump.rdb
 # Documentation
 llm-links.txt
 mapped-links.txt
+venv/*

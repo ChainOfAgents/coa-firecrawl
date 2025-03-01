@@ -1,0 +1,92 @@
+steps:
+  # Build Playwright Service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/playwright-service:$COMMIT_SHA',
+      './apps/playwright-service-ts'
+    ]
+
+  # Build API Service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA',
+      './apps/api'
+    ]
+
+  # Push Playwright Service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/playwright-service:$COMMIT_SHA'
+    ]
+
+  # Push API Service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA'
+    ]
+
+  # Deploy Playwright Service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'playwright-service',
+      '--image', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/playwright-service:$COMMIT_SHA',
+      '--region', '${_REGION}',
+      '--platform', 'managed',
+      '--port', '3000',
+      '--vpc-connector', 'firecrawl-connector',
+      '--set-env-vars', 'PORT=3000',
+      '--set-secrets', 'PROXY_SERVER=PROXY_SERVER:latest,PROXY_USERNAME=PROXY_USERNAME:latest,PROXY_PASSWORD=PROXY_PASSWORD:latest',
+      '--memory', '2Gi',
+      '--cpu', '2',
+      '--timeout', '3600'
+    ]
+
+  # Deploy API Service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'api-service',
+      '--image', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA',
+      '--region', '${_REGION}',
+      '--platform', 'managed',
+      '--port', '3002',
+      '--vpc-connector', 'firecrawl-connector',
+      '--command', 'pnpm,run,start:production',
+      '--set-env-vars', 'PORT=3002,REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape',
+      '--set-secrets', 'SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest',
+      '--memory', '2Gi',
+      '--cpu', '2',
+      '--timeout', '3600'
+    ]
+
+  # Deploy Worker Service (using API service image)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'worker-service',
+      '--image', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA',
+      '--region', '${_REGION}',
+      '--platform', 'managed',
+      '--vpc-connector', 'firecrawl-connector',
+      '--command', 'pnpm,run,workers',
+      '--set-env-vars', 'REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape',
+      '--set-secrets', 'SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest',
+      '--memory', '2Gi',
+      '--cpu', '2',
+      '--timeout', '3600',
+      '--no-allow-unauthenticated'
+    ]
+
+substitutions:
+  _REGION: us-central1
+  _REPO_NAME: firecrawl-repo
+  _REDIS_IP: ${_REDIS_IP}
+  _PLAYWRIGHT_URL: ${_PLAYWRIGHT_URL}
+
+options:
+  dynamic_substitutions: true

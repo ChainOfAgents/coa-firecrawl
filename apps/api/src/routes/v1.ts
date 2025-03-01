@@ -33,6 +33,7 @@ import { generateLLMsTextController } from "../controllers/v1/generate-llmstxt";
 import { generateLLMsTextStatusController } from "../controllers/v1/generate-llmstxt-status";
 import { deepResearchController } from "../controllers/v1/deep-research";
 import { deepResearchStatusController } from "../controllers/v1/deep-research-status";
+import { htmlToMarkdownController } from "../controllers/v1/html-to-markdown";
 
 function checkCreditsMiddleware(
   minimum?: number,
@@ -292,4 +293,10 @@ v1Router.get(
   "/team/credit-usage",
   authMiddleware(RateLimiterMode.CrawlStatus),
   wrap(creditUsageController),
+);
+
+v1Router.post(
+  "/html-to-markdown",
+  authMiddleware(RateLimiterMode.Scrape),
+  wrap(htmlToMarkdownController),
 );
