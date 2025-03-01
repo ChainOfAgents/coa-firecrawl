@@ -94,13 +94,17 @@ steps:
             --region=${_REGION} \
             --platform=managed \
             --vpc-connector=crawlweb-connector \
-            --command="pnpm,run,workers" \
+            --command="pnpm,run,cloudrun-worker:production" \
+            --args="--port=8080" \
             --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape" \
             --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest" \
             --memory=2Gi \
             --cpu=2 \
             --timeout=3600 \
-            --no-allow-unauthenticated
+            --no-allow-unauthenticated \
+            --min-instances=1 \
+            --cpu-throttling=false \
+            --no-cpu-boost
         fi
     waitFor: ['push-api-service']
 
