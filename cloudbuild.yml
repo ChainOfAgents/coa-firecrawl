@@ -26,7 +26,7 @@ steps:
       '--platform', 'managed',
       '--port', '3000',
       '--vpc-connector', 'crawlweb-connector',
-      '--set-env-vars', 'PORT=3000',
+
       '--set-secrets', 'PROXY_SERVER=PROXY_SERVER:latest,PROXY_USERNAME=PROXY_USERNAME:latest,PROXY_PASSWORD=PROXY_PASSWORD:latest',
       '--memory', '2Gi',
       '--cpu', '2',
@@ -64,7 +64,7 @@ steps:
             --port=3002 \
             --vpc-connector=crawlweb-connector \
             --command="pnpm,run,start:production" \
-            --set-env-vars="PORT=3002,REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,USE_DB_AUTHENTICATION=${_USE_DB_AUTHENTICATION},LOGGING_LEVEL=${_LOGGING_LEVEL}" \
+            --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,USE_DB_AUTHENTICATION=${_USE_DB_AUTHENTICATION},LOGGING_LEVEL=${_LOGGING_LEVEL}" \
             --service-account="${_SERVICE_ACCOUNT}" \
             --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest" \
             --memory=2Gi \
@@ -108,4 +108,4 @@ substitutions:
 
 options:
   dynamic_substitutions: true
-  logging: CLOUD_LOGGING_ONLY  # Add Cloud Logging option
+  default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET

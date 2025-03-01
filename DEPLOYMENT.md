@@ -137,6 +137,11 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:${CLOUD_BUILD_SA}" \
     --role="roles/secretmanager.secretAccessor"
+
+gcloud projects add-iam-policy-binding crawl-websites \
+    --member="serviceAccount:475988465347-compute@developer.gserviceaccount.com" \
+    --role="roles/logging.logWriter"
+        
 ```
 
 ## Service Configuration
