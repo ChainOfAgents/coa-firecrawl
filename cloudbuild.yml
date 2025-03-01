@@ -102,9 +102,7 @@ steps:
             --cpu=2 \
             --timeout=3600 \
             --no-allow-unauthenticated \
-            --min-instances=1 \
-            --cpu-throttling=false \
-            --no-cpu-boost
+            --min-instances=1
         fi
     waitFor: ['push-api-service']
 
