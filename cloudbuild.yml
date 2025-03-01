@@ -1,6 +1,6 @@
 options:
-  logging:
-    storageLocation: gs://crawl-websites-build-logs
+  dynamic_substitutions: true
+  logging: CLOUD_LOGGING_ONLY
 
 steps:
   # Build Playwright Service
@@ -110,6 +110,3 @@ substitutions:
   _LOGGING_LEVEL: "info"
   _SERVICE_ACCOUNT: "475988465347-compute@developer.gserviceaccount.com"
 
-options:
-  dynamic_substitutions: true
-  default_logs_bucket_behavior: REGIONAL_USER_OWNED_BUCKET
