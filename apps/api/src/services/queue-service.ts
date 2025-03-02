@@ -24,6 +24,18 @@ export const redisConnection = new IORedis({
   host: redisHost,
   port: redisPort,
   maxRetriesPerRequest: null,
+  retryStrategy: (times) => {
+    const delay = Math.min(times * 1000, 30000);
+    console.log(`Retrying Redis connection in ${delay}ms (attempt ${times})`);
+    return delay;
+  },
+  connectTimeout: Number(process.env.REDIS_CONNECTION_TIMEOUT) || 30000,
+  maxRetriesPerRequest: Number(process.env.REDIS_MAX_RETRIES) || 10,
+  enableReadyCheck: true,
+  reconnectOnError: (err) => {
+    console.error('Redis connection error:', err);
+    return true;
+  }
 });
 
 export const scrapeQueueName = "{scrapeQueue}";
