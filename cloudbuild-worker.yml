@@ -35,7 +35,9 @@ steps:
           --region=${_REGION} \
           --platform=managed \
           --vpc-connector=crawlweb-connector \
-          --command="pnpm,run,cloudrun-worker:production" \
+          --port=8080 \
+          --command="node" \
+          --args="dist/src/services/cloud-run-worker.js" \
           --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,HOST=0.0.0.0" \
           --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest" \
           --memory=2Gi \

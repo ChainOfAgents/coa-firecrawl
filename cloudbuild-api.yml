@@ -35,7 +35,9 @@ steps:
           --region=${_REGION} \
           --platform=managed \
           --vpc-connector=crawlweb-connector \
-          --command="pnpm,run,start:production" \
+          --port=3002 \
+          --command="node" \
+          --args="dist/src/index.js" \
           --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,USE_DB_AUTHENTICATION=${_USE_DB_AUTHENTICATION},LOGGING_LEVEL=${_LOGGING_LEVEL},HOST=0.0.0.0" \
           --service-account="${_SERVICE_ACCOUNT}" \
           --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest" \

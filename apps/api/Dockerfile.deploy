@@ -39,9 +39,16 @@ COPY --from=go-base /app/sharedLibs/go-html-to-md/html-to-markdown.so /app/share
 COPY --from=rust-base /app/sharedLibs/html-transformer/target/release/libhtml_transformer.so /app/sharedLibs/html-transformer/target/release/libhtml_transformer.so
 
 # Start the server by default, this can be overwritten at runtime
-EXPOSE 8080
+EXPOSE 3002
 
 # Make sure the entrypoint script has the correct line endings
 RUN sed -i 's/\r$//' /app/docker-entrypoint.sh
 
-ENTRYPOINT "/app/docker-entrypoint.sh"
+# Create a wrapper script to ensure proper port binding
+RUN echo '#!/bin/bash\n\
+echo "Starting application with PORT=${PORT:-3002}"\n\
+export PORT=${PORT:-3002}\n\
+exec "/app/docker-entrypoint.sh" "$@"' > /app/wrapper.sh \
+    && chmod +x /app/wrapper.sh
+
+ENTRYPOINT ["/app/wrapper.sh"]
