@@ -1,6 +1,8 @@
 options:
   dynamic_substitutions: true
   logging: CLOUD_LOGGING_ONLY
+  machineType: 'N1_HIGHCPU_8'
+  timeout: '3600s'
 
 steps:
   # Build API Service (We use the same image for worker)
@@ -10,6 +12,9 @@ steps:
       - 'DOCKER_BUILDKIT=1'
     args: [
       'build',
+      '--memory=8g',
+      '--cpu-quota=400000',
+      '--build-arg', 'BUILDKIT_INLINE_CACHE=1',
       '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA',
       '-f', './apps/api/Dockerfile.deploy',
       './apps/api'

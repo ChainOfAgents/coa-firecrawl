@@ -15,21 +15,38 @@ RUN pnpm install && pnpm run build
 
 # Install Go
 FROM golang:1.24 AS go-base
-COPY sharedLibs/go-html-to-md /app/sharedLibs/go-html-to-md
+WORKDIR /app/sharedLibs/go-html-to-md
 
-# Install Go dependencies and build parser lib
-RUN cd /app/sharedLibs/go-html-to-md && \
-    go mod tidy && \
-    go build -o html-to-markdown.so -buildmode=c-shared html-to-markdown.go && \
+# Copy only go.mod and go.sum first to cache dependencies
+COPY sharedLibs/go-html-to-md/go.mod sharedLibs/go-html-to-md/go.sum ./
+RUN go mod download
+
+# Now copy the source code
+COPY sharedLibs/go-html-to-md/*.go ./
+
+# Build with optimizations
+RUN CGO_ENABLED=1 GOOS=linux go build -o html-to-markdown.so -buildmode=c-shared -ldflags="-s -w" html-to-markdown.go && \
     chmod +x html-to-markdown.so
 
 # Install Rust
 FROM rust:1-slim AS rust-base
-COPY sharedLibs/html-transformer /app/sharedLibs/html-transformer
+WORKDIR /app/sharedLibs/html-transformer
 
-# Install Rust dependencies and build transformer lib
-RUN cd /app/sharedLibs/html-transformer && \
-    cargo build --release && \
+# Create a new empty project to cache dependencies
+RUN USER=root cargo new --lib html-transformer
+WORKDIR /app/sharedLibs/html-transformer/html-transformer
+
+# Copy only the Cargo files first
+COPY sharedLibs/html-transformer/Cargo.toml sharedLibs/html-transformer/Cargo.lock ./
+
+# Build the dependencies only
+RUN cargo build --release
+
+# Now copy the actual source code
+COPY sharedLibs/html-transformer/src ./src
+
+# Build the final binary
+RUN cargo build --release && \
     chmod +x target/release/libhtml_transformer.so
 
 FROM base
