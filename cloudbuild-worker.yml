@@ -1,8 +1,8 @@
+timeout: 3600s
 options:
   dynamic_substitutions: true
   logging: CLOUD_LOGGING_ONLY
   machineType: 'N1_HIGHCPU_8'
-  timeout: '3600s'
 
 steps:
   # Build API Service (We use the same image for worker)
