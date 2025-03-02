@@ -12,7 +12,17 @@ let deepResearchQueue: Queue;
 let generateLlmsTxtQueue: Queue;
 let billingQueue: Queue;
 
-export const redisConnection = new IORedis(process.env.REDIS_URL!, {
+// Parse Redis URL to extract host and port
+const redisUrl = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const redisUrlObj = new URL(redisUrl);
+const redisHost = redisUrlObj.hostname;
+const redisPort = parseInt(redisUrlObj.port || '6379', 10);
+
+console.log(`Connecting to Redis at ${redisHost}:${redisPort}`);
+
+export const redisConnection = new IORedis({
+  host: redisHost,
+  port: redisPort,
   maxRetriesPerRequest: null,
 });
 

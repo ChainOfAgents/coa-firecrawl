@@ -158,9 +158,18 @@ const RATE_LIMITS = {
   },
 };
 
-export const redisRateLimitClient = new Redis(
-  process.env.REDIS_RATE_LIMIT_URL!,
-);
+// Parse Redis URL to extract host and port
+const redisRateLimitUrl = process.env.REDIS_RATE_LIMIT_URL || process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const redisRateLimitUrlObj = new URL(redisRateLimitUrl);
+const redisRateLimitHost = redisRateLimitUrlObj.hostname;
+const redisRateLimitPort = parseInt(redisRateLimitUrlObj.port || '6379', 10);
+
+console.log(`Connecting to Redis Rate Limit at ${redisRateLimitHost}:${redisRateLimitPort}`);
+
+export const redisRateLimitClient = new Redis({
+  host: redisRateLimitHost,
+  port: redisRateLimitPort
+});
 
 const createRateLimiter = (keyPrefix, points) =>
   new RateLimiterRedis({
