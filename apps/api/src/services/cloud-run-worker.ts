@@ -14,12 +14,23 @@ import '../services/queue-worker';
 // Create a simple HTTP server for Cloud Run health checks
 const server = http.createServer((req, res) => {
   if (req.url === '/health') {
+    // Check Redis connection
+    if (!redisConnection.status || redisConnection.status !== 'ready') {
+      res.writeHead(503);
+      res.end('Redis connection not ready');
+      return;
+    }
     res.writeHead(200);
     res.end('Worker is healthy');
   } else {
     res.writeHead(200);
     res.end('Worker service running');
   }
+});
+
+// Add error handler for the server
+server.on('error', (err) => {
+  console.error('Server error:', err);
 });
 
 const port = process.env.PORT || 8080;

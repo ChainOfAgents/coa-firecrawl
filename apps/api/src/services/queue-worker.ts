@@ -83,9 +83,10 @@ class RacedRedirectError extends Error {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const workerLockDuration = Number(process.env.WORKER_LOCK_DURATION) || 60000;
-const workerStalledCheckInterval =
-  Number(process.env.WORKER_STALLED_CHECK_INTERVAL) || 30000;
+// Increase lock duration and stalled check interval
+const workerLockDuration = Number(process.env.WORKER_LOCK_DURATION) || 120000; // 2 minutes
+const workerStalledCheckInterval = Number(process.env.WORKER_STALLED_CHECK_INTERVAL) || 60000; // 1 minute
+const maxStalledCount = Number(process.env.MAX_STALLED_COUNT) || 3;
 const jobLockExtendInterval =
   Number(process.env.JOB_LOCK_EXTEND_INTERVAL) || 15000;
 const jobLockExtensionTime =
