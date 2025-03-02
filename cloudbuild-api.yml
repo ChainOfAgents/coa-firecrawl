@@ -1,0 +1,54 @@
+options:
+  dynamic_substitutions: true
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Build API Service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-api-service'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+    args: [
+      'build',
+      '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA',
+      '-f', './apps/api/Dockerfile.deploy',
+      './apps/api'
+    ]
+
+  # Push API Service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-api-service'
+    args: [
+      'push',
+      '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA'
+    ]
+    waitFor: ['build-api-service']
+
+  # Deploy API Service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud run deploy api-service \
+          --image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/api-service:$COMMIT_SHA \
+          --region=${_REGION} \
+          --platform=managed \
+          --vpc-connector=crawlweb-connector \
+          --command="pnpm,run,start:production" \
+          --set-env-vars="REDIS_URL=redis://${_REDIS_IP}:6379,PLAYWRIGHT_MICROSERVICE_URL=${_PLAYWRIGHT_URL}/scrape,USE_DB_AUTHENTICATION=${_USE_DB_AUTHENTICATION},LOGGING_LEVEL=${_LOGGING_LEVEL},HOST=0.0.0.0" \
+          --service-account="${_SERVICE_ACCOUNT}" \
+          --set-secrets="SUPABASE_URL=SUPABASE_URL:latest,SUPABASE_ANON_TOKEN=SUPABASE_ANON_TOKEN:latest,SUPABASE_SERVICE_TOKEN=SUPABASE_SERVICE_TOKEN:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest" \
+          --memory=2Gi \
+          --cpu=2 \
+          --timeout=3600
+    waitFor: ['push-api-service']
+
+substitutions:
+  _REGION: us-west2
+  _REPO_NAME: crawlweb-repo
+  _REDIS_IP: 10.110.96.2
+  _PLAYWRIGHT_URL: https://playwright-service-475988465347.us-west2.run.app
+  _USE_DB_AUTHENTICATION: "false"
+  _LOGGING_LEVEL: "info"
+  _SERVICE_ACCOUNT: service-475988465347@serverless-robot-prod.iam.gserviceaccount.com

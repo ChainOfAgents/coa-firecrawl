@@ -1,0 +1,41 @@
+options:
+  dynamic_substitutions: true
+  logging: CLOUD_LOGGING_ONLY
+
+steps:
+  # Build Playwright Service
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-playwright'
+    args: [
+      'build',
+      '-t', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/playwright-service:$COMMIT_SHA',
+      './apps/playwright-service-ts'
+    ]
+
+  # Push Playwright Service
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'push',
+      '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/playwright-service:$COMMIT_SHA'
+    ]
+
+  # Deploy Playwright Service
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-playwright'
+    entrypoint: gcloud
+    args: [
+      'run', 'deploy', 'playwright-service',
+      '--image', '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO_NAME}/playwright-service:$COMMIT_SHA',
+      '--region', '${_REGION}',
+      '--platform', 'managed',
+      '--vpc-connector', 'crawlweb-connector',
+      '--set-secrets', 'PROXY_SERVER=PROXY_SERVER:latest,PROXY_USERNAME=PROXY_USERNAME:latest,PROXY_PASSWORD=PROXY_PASSWORD:latest',
+      '--memory', '2Gi',
+      '--cpu', '2',
+      '--timeout', '3600'
+    ]
+
+substitutions:
+  _REGION: us-west2
+  _REPO_NAME: crawlweb-repo
+  _PLAYWRIGHT_URL: https://playwright-service-475988465347.us-west2.run.app
